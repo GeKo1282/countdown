@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZOSTALO WAM 45 SEKUND ZYCIA</title>
+
+    <style>
+        .absolute {
+            position: absolute;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            padding: 0;
+            margin: 0;
+            background-color: #000;
+        }
+
+        #counter {
+            font-size: 120px;
+            color: white;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #controls {
+            top: 75%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            gap: 150px;
+        }
+
+
+        #controls > .button {
+            height: 150px;
+            width: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid #444;
+            border-radius: 15px;
+            transition: all 0.2s;
+        }
+
+        .button:hover {
+            scale: 1.05;
+            opacity: 0.8;
+            border: 2px solid #666;
+        }
+
+        .button > .icon {
+            height: 100%;
+            aspect-ratio: 1;
+        }
+
+        #button-correct {
+            background: green;
+        }
+
+        #button-incorrect {
+            background: red;
+        }
+
+        #title {
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            width: 100%;
+            text-align: center;
+            color: white;
+        }
+
+        #popup {
+            opacity: 1;
+            pointer-events: all;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #444;
+            width: 75%;
+            padding: 50px;
+            box-sizing: border-box;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 50px;
+        }
+
+        #popup:not(.shown) {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #button-panel {
+            display: grid;
+            grid: 150px / auto auto auto;
+            width: 100%;
+            gap: 25px;
+            padding: 20px;
+            box-sizing: border-box;
+
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #button-panel > .button {
+            height: 150px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid #444;
+            background: #333;
+            border-radius: 15px;
+            transition: all 0.2s;
+            box-sizing: border-box;
+
+            font-size: 75px;
+            color: white;
+        }
+
+        #popup > input {
+            background: transparent;
+            outline: transparent;
+            border: 2px solid #666;
+            border-radius: 15px;
+            font-size: 45px;
+            color: white;
+            padding: 5px;
+        }
+    </style>
+
+    <script>
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        document.onkeydown = () => {
+            if (event.key == "Enter" && !document.getElementById("popup").classList.contains("shown")) {
+                document.getElementById("popup").classList.add("shown");
+            }
+        }
+
+        function clear_timer(text) {
+            clearInterval(document.interval);
+            document.interval = null;
+
+            if (text) {
+                document.getElementById("counter").innerText = text;
+            }
+        }
+
+        start_time = async (time) => {
+            await sleep(100);
+
+            if (document.interval) {
+                clear_timer();
+            }
+
+            document.getElementById("popup").classList.remove("shown");
+            document.getElementById("counter").innerText = time;
+
+            await run();
+            await sleep(1500);
+            elevator_loop();
+
+            document.interval = setInterval(() => {
+                time--;
+                document.getElementById("counter").innerText = time;
+                if (time == 0) {
+                    clearInterval(document.interval);
+                    document.interval = null;
+                    times_up();
+                }
+            }, 1000);
+        }
+
+        keydown_input = () => {
+            if (event.key == "Enter") {
+                start_time(document.getElementById("time-input").value);
+            }
+        }
+
+        function times_up() {
+            document.player ||= new Audio();
+
+            document.player.loop = false;
+            document.player.src = "/file/fail_horn.mp3";
+            document.player.play();
+
+            clear_timer("c:");
+        }
+
+        function elevator_loop() {
+            document.player ||= new Audio();
+
+            document.player.loop = true;
+            document.player.src = "/file/elevator.mp3";
+            document.player.play();
+        }
+
+        async function run() {
+            await new Promise((resolve, reject) => {
+                document.player ||= new Audio();
+
+                document.player.loop = false;
+                document.player.src = "/file/run.mp3";
+                document.player.play();
+
+                document.player.onended = () => {
+                    resolve();
+                }
+            });
+        }
+
+        function button_success_press() {
+            if (!document.interval) {
+                return;
+            }
+
+            document.player ||= new Audio();
+
+            document.player.loop = false;
+            document.player.src = "/file/applause.mp3";
+            document.player.play();
+
+            clear_timer(":'c")
+        }
+
+        function button_fail_press() {
+            if (!document.interval) {
+                return;
+            }
+
+            document.player ||= new Audio();
+
+            document.player.loop = false;
+            document.player.src = "/file/fail_horn.mp3";
+            document.player.play();
+
+            clear_timer("c:");
+        }
+    </script>
+</head>
+<body id="body">
+    <div class="absolute" id="title">
+        Nie czuj presji... i tak walczysz tylko o dwa.
+    </div>
+
+    <div class="absolute" id="counter">
+        
+    </div>
+
+    <div class="absolute" id="controls">
+        <div class="button" id="button-correct" onclick="button_success_press()">
+            <div class="icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" >
+                    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0"/>
+                </svg>
+            </div>
+        </div>
+        <div class="button" id="button-incorrect" onclick="button_fail_press()">
+            <div class="icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div id="popup">
+        <div id="button-panel">
+            <div class="button" onclick="start_time(5)">5</div>
+            <div class="button" onclick="start_time(10)">10</div>
+            <div class="button" onclick="start_time(15)">15</div>
+            <div class="button" onclick="start_time(30)">30</div>
+            <div class="button" onclick="start_time(60)">60</div>
+            <div class="button" onclick="start_time(120)">120</div>
+        </div>
+        
+        <input type="text" id="time-input" onkeydown="keydown_input()" placeholder="Inny czas... (sekundy)"></input>
+    </div>
+</body>
+</html>
